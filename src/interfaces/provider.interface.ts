@@ -8,5 +8,5 @@ export interface MusicProvider {
 }
 
 export interface DownloadableMusicProvider extends MusicProvider {
-  download(url: string): Promise<TrackFile>;
+  download(url: string): Promise<string>;
 }

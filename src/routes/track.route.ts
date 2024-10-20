@@ -15,5 +15,7 @@ export class TrackRoute implements Routes {
     this.router.get(`${this.path}/action`, this.track.determineAction);
     this.router.get(`${this.path}/alternatives`, this.track.getAlternatives);
     this.router.get(`${this.path}/metadata`, this.track.getMetadata);
+    this.router.get(`${this.path}/download`, this.track.download);
+    this.router.get(`${this.path}/download-url`, this.track.getDownloadUrl);
   }
 }

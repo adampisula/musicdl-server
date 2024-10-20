@@ -71,16 +71,15 @@ export class SpotifyProvider implements MusicProvider {
 
     const artists: string[] = data["artists"].map((a: any) => a["name"]);
     const title: string = data["name"];
-    const duration: number = Math.floor(data["duration_ms"] / 1000);
+    const durationSeconds: number = Math.floor(data["duration_ms"] / 1000);
     const isRemix: boolean = title.toLowerCase().includes("remix");
-    const isExtended: boolean = title.toLowerCase().includes("extended");
+    // const isExtended: boolean = title.toLowerCase().includes("extended");
 
     return {
       title,
       artists,
       isRemix,
-      isExtended,
-      duration,
+      durationSeconds,
     };
   };
 

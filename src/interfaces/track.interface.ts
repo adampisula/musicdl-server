@@ -2,23 +2,28 @@ export interface Track {
   id: string;
   metadata: TrackMetadata;
   source: TrackSource;
-  file: TrackFile;
+  file?: TrackFile;
 }
 
 export interface TrackMetadata {
   artists: string[];
   title: string;
   isRemix: boolean;
-  isExtended: boolean;
-  duration: number;
+  durationSeconds: number;
 }
 
 export interface TrackSource {
-  spotifyLink?: string;
-  youtubeLink?: string;
-  soundcloudLink?: string;
+  spotifyId?: string;
+  youtubeId?: string;
+  // soundcloudLink?: string;
 }
 
 export interface TrackFile {
-
+  id: number;
+  s3ObjectId: string;
+  sha1Checksum: string;
+  fileExtensions: string;
+  size: number;
+  createdAt: Date;
+  expiresAt: Date;
 }

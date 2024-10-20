@@ -36,5 +36,25 @@ export class TrackController {
       next(error);
     }
   };
+
+  public download = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      return res.status(200).json({
+        data: await this.track.download(req.query.url as string),
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public getDownloadUrl = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      return res.status(200).json({
+        data: await this.track.getDownloadUrl(req.query.object_id as string),
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
