@@ -1,6 +1,6 @@
 import pg from "pg";
 import { TracksRepository } from "@/interfaces/tracksRepository.interface";
-import { Track } from '@/interfaces/track.interface'
+import { Track, TrackFile } from '@/interfaces/track.interface'
 import { DATABASE_URL } from '@/config'
 import { Service } from 'typedi'
 
@@ -117,32 +117,78 @@ export class PgTracksRepository implements TracksRepository {
         return rows[0].id;
     }
 
+    private async getLatestFile(trackId: number): Promise<TrackFile> {
+        const query = {
+            text: `
+                SELECT *
+                FROM files
+                WHERE track_id_fk = $1
+                ORDER BY created_at DESC
+                LIMIT 1
+            `,
+            values: [trackId]
+        }
+        const { rows } = await this.pool.query(query);
+        const r = rows[0];
+
+        return {
+            s3ObjectId: r.s3_object_id,
+            sha1Checksum: r.sha1_checksum,
+            fileExtension: r.file_extension,
+            size: r.size,
+            createdAt: r.created_at,
+            expiresAt: r.expires_at,
+        };
+    }
+
+    private async getArtistsNames(trackId: number): Promise<string[]> {
+        const query = {
+            text: `
+                SELECT a.name
+                FROM artists a
+                INNER JOIN metadatasartists ma ON ma.artist_id_fk = a.id
+                WHERE ma.metadata_id_fk = $1
+                ORDER BY ma.artist_order ASC
+            `,
+            values: [trackId]
+        }
+        const { rows } = await this.pool.query(query);
+        return rows.map(r => r.name);
+    }
+
     async getTrackByProviderId(id: string): Promise<Track> {
         const query = {
             text: `
                 SELECT
-                DISTINCT ON (f.created_at)
-                    f.s3_object_id, f.sha1_checksum, f.file_extension, f.size, f.created_at, f.expires_at
+                    t.id,
                     m.title, m.is_remix, m.duration_seconds,
-                    s.spotify_id, s.youtube_id,
-                    array_agg(
-                        SELECT a.name
-                        FROM artists a
-                        WHERE ma.artist_id_fk = a.id
-                        ORDER BY ma.artist_order ASC
-                    ) AS artists
+                    s.spotify_id, s.youtube_id
                 FROM tracks t
-                INNER JOIN files f ON t.file_id_fk = f.id
                 INNER JOIN metadatas m ON t.metadata_id_fk = m.id
                 INNER JOIN sources s ON t.source_id_fk = s.id
-                INNER JOIN metadatasartists ma ON ma.metadata_id_fk = m.id
                 WHERE s.spotify_id = $1 OR s.youtube_id = $1
-                ORDER BY f.created_at DESC
             `,
             values: [id]
         }
         const { rows } = await this.pool.query(query);
-        return rows[0];
+        const r = rows[0];
+
+        const file = await this.getLatestFile(r.id);
+        const artists = await this.getArtistsNames(r.id);
+
+        return {
+            metadata: {
+                title: r.title,
+                isRemix: r.is_remix,
+                durationSeconds: r.duration_seconds,
+                artists,
+            },
+            source: {
+                spotifyId: r.spotify_id,
+                youtubeId: r.youtube_id,
+            },
+            file,
+        };
     }
 
     async addTrack(track: Track): Promise<number> {

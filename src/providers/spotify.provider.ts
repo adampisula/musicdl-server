@@ -3,7 +3,7 @@ import { MusicProvider } from "@interfaces/provider.interface";
 import { TrackMetadata } from "@interfaces/track.interface";
 import { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET } from "@config";
 import { HttpException } from "@/exceptions/HttpException";
-import { logger } from "@/utils/logger";
+import { logger } from "@/utils/logger.util";
 import { Link } from '@/interfaces/links.interface'
 
 @Service()

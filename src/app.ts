@@ -2,7 +2,7 @@ import "reflect-metadata";
 import express from "express";
 
 import { NODE_ENV, PORT } from "@config";
-import { logger } from "@utils/logger"
+import { logger } from "@/utils/logger.util"
 import { Routes } from "@interfaces/routes.interface";
 import { ErrorMiddleware } from "@middleware/error.middleware";
 

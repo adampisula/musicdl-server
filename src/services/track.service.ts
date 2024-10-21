@@ -4,16 +4,15 @@ import { Track, TrackMetadata } from "@interfaces/track.interface";
 import { YouTubeProvider } from "@providers/youtube.provider";
 import { SoundCloudProvider } from "@providers/soundcloud.provider";
 import { SpotifyProvider } from "@providers/spotify.provider";
-import { Action } from "@/interfaces/actions.interface";
 import { HttpException } from "@/exceptions/HttpException";
 import { Links } from "@/interfaces/links.interface";
 import { BackblazeRepository } from "@/repositories/backblaze.repository";
-import { sha1 } from "@/utils/checksum";
+import { sha1 } from "@/utils/checksum.util";
 import path from "path"
 import moment from "moment";
 import { unlink } from "fs/promises";
 import { PgTracksRepository } from "@/repositories/pgTracks.repository";
-import { fileSize } from '@/utils/fileSize'
+import { fileSize } from '@/utils/fileSize.util'
 
 
 @Service()
@@ -42,7 +41,7 @@ export class TrackService {
       throw new HttpException(404, "Track not found");
     }
 
-    if(track.file.expiresAt > new Date()) {
+    if(track.file.expiresAt < new Date()) {
       if(!track.source.youtubeId) {  // or soundcloud
         throw new HttpException(500, "Track missing source URL. This should never happen");
       }

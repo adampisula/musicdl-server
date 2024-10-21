@@ -4,7 +4,7 @@ import { TrackFile, TrackMetadata } from "@interfaces/track.interface";
 import { DownloadableMusicProvider } from "@interfaces/provider.interface";
 import { YOUTUBE_API_KEY } from '@/config'
 import { Link } from '@/interfaces/links.interface'
-import { logger } from '@/utils/logger';
+import { logger } from '@/utils/logger.util';
 import { YtDlpProvider } from './ytdlp.provider'
 import { HttpException } from '@/exceptions/HttpException'
 

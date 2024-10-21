@@ -1,6 +1,6 @@
 import { TrackMetadata } from '@/interfaces/track.interface'
-import { snakeCaseOutputParser } from '@/utils/outputParser'
-import { getDownloadUrlSchema, fetchSchema, getAlternativesSchema, getMetadataSchema } from '@/utils/validationSchemas'
+import { snakeCaseOutputParser } from '@/utils/outputParser.util'
+import { getDownloadUrlSchema, fetchSchema, getAlternativesSchema, getMetadataSchema } from '@/utils/validationSchemas.util'
 import { TrackService } from "@services/track.service";
 import { Request, Response, NextFunction } from "express";
 import { Container } from "typedi";
