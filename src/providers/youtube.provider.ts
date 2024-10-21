@@ -143,7 +143,10 @@ export class YouTubeProvider implements DownloadableMusicProvider {
       requestUrl.searchParams.set(key, params[key]);
     }
 
-    logger.debug(`Making query to YouTube: "${params["q"]}"`);
+    const paramsWithoutKey = {...params};
+    delete paramsWithoutKey["key"];
+
+    logger.debug(`Making query to YouTube - ${JSON.stringify({requestUrl, paramsWithoutKey})}`);
 
     const response = await fetch(requestUrl);
     const searchResults = (await response.json())["items"];
@@ -226,14 +229,21 @@ export class YouTubeProvider implements DownloadableMusicProvider {
     trackMeta: TrackMetadata,
     preferExtended: boolean = false
   ): Promise<Link[]> {
+    logger.debug(`Running YouTube musicSearch - ${JSON.stringify(trackMeta)}`);
     const musicMatches = await this.musicSearch(trackMeta, preferExtended);
     const musicMatchesSorted = musicMatches.sort((a, b) => b.similarity - a.similarity);
+    logger.debug(`YouTube musicSearch results - ${JSON.stringify({trackMeta, musicMatchesSorted})}`);
 
     if(musicMatchesSorted.length > 0 && musicMatchesSorted[0].similarity > this.EXACT_MATCH_THRESHOLD) {
-      return [musicMatchesSorted[0]];
+      const exactMatch = musicMatchesSorted[0];
+      logger.debug(`Exact match found on YouTube through musicSearch - ${JSON.stringify({trackMeta, exactMatch})}`);
+
+      return [exactMatch];
     }
 
+    logger.debug(`Exact match not found through YouTube musicSearch. Running normalSearch - ${JSON.stringify(trackMeta)}`);
     const normalMatches = await this.normalSearch(trackMeta, preferExtended);
+    logger.debug(`YouTube normalSearch results - ${JSON.stringify({trackMeta, normalMatches})}`);
 
     const matches = musicMatches.concat(normalMatches);
     const sortedAsc = matches.sort((a, b) => a.similarity - b.similarity);

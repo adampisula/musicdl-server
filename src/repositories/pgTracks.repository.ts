@@ -94,7 +94,7 @@ export class PgTracksRepository implements TracksRepository {
         return rows[0].id;
     }
 
-    private async addFile(args: {
+    public async addFile(args: {
         trackId: number,
         s3ObjectId: string,
         sha1Checksum: string,
@@ -177,6 +177,7 @@ export class PgTracksRepository implements TracksRepository {
         const artists = await this.getArtistsNames(r.id);
 
         return {
+            id: r.id,
             metadata: {
                 title: r.title,
                 isRemix: r.is_remix,

@@ -1,4 +1,5 @@
 export interface Track {
+  id: number;
   metadata: TrackMetadata;
   source: TrackSource;
   file: TrackFile;

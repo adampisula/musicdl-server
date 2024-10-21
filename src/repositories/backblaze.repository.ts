@@ -8,7 +8,7 @@ import { readFile } from "fs/promises";
 export class BackblazeRepository implements FileRepository {
     private B2_COMMON_ARGS = {
         axios: {
-            timeout: 60000,
+            timeout: 180000,
         },
     };
 

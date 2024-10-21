@@ -3,6 +3,7 @@ import { v4 as uuid } from "uuid";
 import { TEMP_PATH } from '@/config'
 import { Service } from 'typedi'
 import { spawn } from "child_process";
+import { isExecutableAvailable } from '@/utils/executable.util'
 
 @Service()
 export class YtDlpProvider {
@@ -14,6 +15,16 @@ export class YtDlpProvider {
         "--audio-quality",
         "0",  // best
     ];
+
+    constructor() {
+        if(!isExecutableAvailable("yt-dlp")) {
+            throw new Error("yt-dlp is not available");
+        }
+        
+        if (!isExecutableAvailable("ffmpeg")) {
+            throw new Error("ffmpeg is not available");
+        }
+    }
 
     async download(url: string): Promise<string> {
         return new Promise((resolve, reject) => {
