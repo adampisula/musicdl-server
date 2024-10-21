@@ -1,4 +1,5 @@
 import { TrackMetadata } from '@/interfaces/track.interface'
+import { snakeCaseOutputParser } from '@/utils/outputParser'
 import { getDownloadUrlSchema, fetchSchema, getAlternativesSchema, getMetadataSchema } from '@/utils/validationSchemas'
 import { TrackService } from "@services/track.service";
 import { Request, Response, NextFunction } from "express";
@@ -11,9 +12,9 @@ export class TrackController {
     try {
       await getDownloadUrlSchema.validateAsync(req.query);
 
-      return res.status(200).json({
+      return res.status(200).json(snakeCaseOutputParser({
         data: await this.track.getDownloadUrl(req.query.url as string),
-      });
+      }));
     } catch (error) {
       next(error);
     }
@@ -23,9 +24,9 @@ export class TrackController {
     try {
       await getMetadataSchema.validateAsync(req.query);
 
-      return res.status(200).json({
+      return res.status(200).json(snakeCaseOutputParser({
         data: await this.track.getMetadata(req.query.url as string),
-      });
+      }));
     } catch (error) {
       next(error);
     }
@@ -36,9 +37,9 @@ export class TrackController {
       await getAlternativesSchema.validateAsync(req.query);
       const preferExtended = String(req.query.prefer_extended).toLowerCase() === "true";
 
-      return res.status(200).json({
+      return res.status(200).json(snakeCaseOutputParser({
         data: await this.track.getAlternatives(req.query.url as string, preferExtended),
-      });
+      }));
     } catch (error) {
       next(error);
     }
@@ -61,9 +62,9 @@ export class TrackController {
         durationSeconds: metadata.duration_seconds,
       };
 
-      return res.status(200).json({
+      return res.status(200).json(snakeCaseOutputParser({
         data: await this.track.fetch(passSource, passMetadata),
-      });
+      }));
     } catch (error) {
       next(error);
     }

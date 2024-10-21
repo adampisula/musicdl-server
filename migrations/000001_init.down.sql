@@ -1,11 +1,11 @@
 ALTER TABLE Tracks
-DROP CONSTRAINT Tracks_file_id_fk_Files_id;
-
-ALTER TABLE Tracks
 DROP CONSTRAINT Tracks_metadata_id_fk_Metadatas_id;
 
 ALTER TABLE Tracks
 DROP CONSTRAINT Tracks_source_id_fk_Sources_id;
+
+ALTER TABLE Files
+DROP CONSTRAINT Files_track_id_fk_Tracks_id;
 
 ALTER TABLE MetadatasArtists
 DROP CONSTRAINT MetadatasArtists_metadata_id_fk_Metadatas_id;

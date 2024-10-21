@@ -95,6 +95,7 @@ export class PgTracksRepository implements TracksRepository {
     }
 
     private async addFile(args: {
+        trackId: number,
         s3ObjectId: string,
         sha1Checksum: string,
         fileExtension: string,
@@ -102,15 +103,15 @@ export class PgTracksRepository implements TracksRepository {
         createdAt: Date,
         expiresAt: Date,
     }): Promise<number> {
-        const { s3ObjectId, sha1Checksum, fileExtension, size, createdAt, expiresAt } = args;
+        const { trackId, s3ObjectId, sha1Checksum, fileExtension, size, createdAt, expiresAt } = args;
         const query = {
             text: `
                 INSERT INTO files
-                (s3_object_id, sha1_checksum, file_extension, size, created_at, expires_at)
-                VALUES ($1, $2, $3, $4, $5, $6)
+                (track_id_fk, s3_object_id, sha1_checksum, file_extension, size, created_at, expires_at)
+                VALUES ($1, $2, $3, $4, $5, $6, $7)
                 RETURNING id
             `,
-            values: [s3ObjectId, sha1Checksum, fileExtension, size, createdAt, expiresAt]
+            values: [trackId, s3ObjectId, sha1Checksum, fileExtension, size, createdAt, expiresAt]
         }
         const { rows } = await this.pool.query(query);
         return rows[0].id;
@@ -145,14 +146,6 @@ export class PgTracksRepository implements TracksRepository {
     }
 
     async addTrack(track: Track): Promise<number> {
-        const fileId = await this.addFile({
-            s3ObjectId: track.file.s3ObjectId,
-            sha1Checksum: track.file.sha1Checksum,
-            fileExtension: track.file.fileExtension,
-            size: track.file.size,
-            createdAt: track.file.createdAt,
-            expiresAt: track.file.expiresAt,
-        });
         const metadataId = await this.addMetadata({
             title: track.metadata.title,
             isRemix: track.metadata.isRemix,
@@ -172,13 +165,25 @@ export class PgTracksRepository implements TracksRepository {
         const query = {
             text: `
                 INSERT INTO tracks
-                (file_id_fk, metadata_id_fk, source_id_fk)
-                VALUES ($1, $2, $3)
+                (metadata_id_fk, source_id_fk)
+                VALUES ($1, $2)
                 RETURNING id
             `,
-            values: [fileId, metadataId, sourceId]
+            values: [metadataId, sourceId]
         }
         const { rows } = await this.pool.query(query);
-        return rows[0].id;
+        const trackId = rows[0].id;
+
+        await this.addFile({
+            trackId,
+            s3ObjectId: track.file.s3ObjectId,
+            sha1Checksum: track.file.sha1Checksum,
+            fileExtension: track.file.fileExtension,
+            size: track.file.size,
+            createdAt: track.file.createdAt,
+            expiresAt: track.file.expiresAt,
+        });
+
+        return trackId;
     }
 }
