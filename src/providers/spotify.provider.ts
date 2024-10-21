@@ -43,6 +43,21 @@ export class SpotifyProvider implements MusicProvider {
     logger.info("Successfully refreshed Spotify access token");
   };
 
+  public async getProviderId(url: string): Promise<string> {
+    // TODO: Use regex
+    if(!this.isUrlSupported(url)) {
+      throw new HttpException(400, "Url not supported");
+    }
+
+    const u = new URL(url);
+
+    return u.pathname.split("/").pop();
+  }
+
+  public async constructUrl(id: string): Promise<string> {
+    return `https://open.spotify.com/track/${id}`;
+  }
+
   public isUrlSupported = (url: string): boolean => {
     // const re = /(https?:\/\/open.spotify.com\/(track|user|artist|album)\/[a-zA-Z0-9]+(\/playlist\/[a-zA-Z0-9]+|)|spotify:(track|user|artist|album):[a-zA-Z0-9]+(:playlist:[a-zA-Z0-9]+|))/;
     return this.regex.test(url);

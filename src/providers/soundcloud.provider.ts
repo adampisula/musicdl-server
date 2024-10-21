@@ -15,12 +15,11 @@ export class SoundCloudProvider implements DownloadableMusicProvider {
       title: "",
       artists: [""],
       isRemix: false,
-      isExtended: false,
-      duration: 0,
+      durationSeconds: 0,
     };
   };
 
-  public download(url: string): Promise<TrackFile> {
+  public fetch(url: string): Promise<TrackFile> {
     return Promise.resolve({});
   }
 

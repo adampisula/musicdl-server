@@ -1,3 +1,5 @@
+import { TrackMetadata } from '@/interfaces/track.interface'
+import { getDownloadUrlSchema, fetchSchema, getAlternativesSchema, getMetadataSchema } from '@/utils/validationSchemas'
 import { TrackService } from "@services/track.service";
 import { Request, Response, NextFunction } from "express";
 import { Container } from "typedi";
@@ -5,10 +7,12 @@ import { Container } from "typedi";
 export class TrackController {
   public track = Container.get(TrackService);
 
-  public determineAction = async (req: Request, res: Response, next: NextFunction) => {
+  public getDownloadUrl = async (req: Request, res: Response, next: NextFunction) => {
     try {
+      await getDownloadUrlSchema.validateAsync(req.query);
+
       return res.status(200).json({
-        data: this.track.determineAction(req.query.url as string),
+        data: await this.track.getDownloadUrl(req.query.url as string),
       });
     } catch (error) {
       next(error);
@@ -17,6 +21,8 @@ export class TrackController {
 
   public getMetadata = async (req: Request, res: Response, next: NextFunction) => {
     try {
+      await getMetadataSchema.validateAsync(req.query);
+
       return res.status(200).json({
         data: await this.track.getMetadata(req.query.url as string),
       });
@@ -26,9 +32,10 @@ export class TrackController {
   };
 
   public getAlternatives = async (req: Request, res: Response, next: NextFunction) => {
-    const preferExtended = String(req.query.extended).toLowerCase() == "true";
-
     try {
+      await getAlternativesSchema.validateAsync(req.query);
+      const preferExtended = String(req.query.prefer_extended).toLowerCase() === "true";
+
       return res.status(200).json({
         data: await this.track.getAlternatives(req.query.url as string, preferExtended),
       });
@@ -37,20 +44,25 @@ export class TrackController {
     }
   };
 
-  public download = async (req: Request, res: Response, next: NextFunction) => {
+  public fetch = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      return res.status(200).json({
-        data: await this.track.download(req.query.url as string),
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+      await fetchSchema.validateAsync(req.body);
 
-  public getDownloadUrl = async (req: Request, res: Response, next: NextFunction) => {
-    try {
+      const { source, metadata } = req.body;
+
+      const passSource = {
+        spotifyUrl: source.spotify_url,
+        youtubeUrl: source.youtube_url,
+      };
+      const passMetadata = {
+        artists: metadata.artists,
+        title: metadata.title,
+        isRemix: metadata.is_remix,
+        durationSeconds: metadata.duration_seconds,
+      };
+
       return res.status(200).json({
-        data: await this.track.getDownloadUrl(req.query.object_id as string),
+        data: await this.track.fetch(passSource, passMetadata),
       });
     } catch (error) {
       next(error);

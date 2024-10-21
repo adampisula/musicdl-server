@@ -1,8 +1,7 @@
 export interface Track {
-  id: string;
   metadata: TrackMetadata;
   source: TrackSource;
-  file?: TrackFile;
+  file: TrackFile;
 }
 
 export interface TrackMetadata {
@@ -19,10 +18,9 @@ export interface TrackSource {
 }
 
 export interface TrackFile {
-  id: number;
   s3ObjectId: string;
   sha1Checksum: string;
-  fileExtensions: string;
+  fileExtension: string;
   size: number;
   createdAt: Date;
   expiresAt: Date;

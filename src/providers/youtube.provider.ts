@@ -6,6 +6,7 @@ import { YOUTUBE_API_KEY } from '@/config'
 import { Link } from '@/interfaces/links.interface'
 import { logger } from '@/utils/logger';
 import { YtDlpProvider } from './ytdlp.provider'
+import { HttpException } from '@/exceptions/HttpException'
 
 @Service()
 export class YouTubeProvider implements DownloadableMusicProvider {
@@ -14,8 +15,22 @@ export class YouTubeProvider implements DownloadableMusicProvider {
   private musicVideoCategoryIdLastRefresh: Date;
 
   private SIMILARITY_THRESHOLD = 0.5;
-  private AUTO_MATCH_THRESHOLD = 0.98;
+  private EXACT_MATCH_THRESHOLD = 0.98;
   private REGION_CODE = "SE";
+
+  public async getProviderId(url: string): Promise<string> {
+    // TODO: Use regex
+    if(!this.isUrlSupported(url)) {
+      throw new HttpException(400, "Url not supported");
+    }
+
+    const u = new URL(url);
+    return u.searchParams.get("v");
+  }
+
+  public async constructUrl(id: string): Promise<string> {
+    return `https://www.youtube.com/watch?v=${id}`;
+  }
 
   public isUrlSupported(url: string): boolean {
     const re = /^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$/;
@@ -118,7 +133,12 @@ export class YouTubeProvider implements DownloadableMusicProvider {
     return `${trackMeta.artists[0]} ${trackMeta.title}${preferExtended ? " extended" : ""}`;
   }
 
-  private async runYoutubeSearch(requestUrl: URL, params: object, trackMeta: TrackMetadata, preferExtended: boolean): Promise<Link[]> {
+  private async runYoutubeSearch(
+    requestUrl: URL,
+    params: object,
+    trackMeta: TrackMetadata,
+    preferExtended: boolean
+  ): Promise<Link[]> {
     for(const key in params) {
       requestUrl.searchParams.set(key, params[key]);
     }
@@ -161,13 +181,16 @@ export class YouTubeProvider implements DownloadableMusicProvider {
     return matches;
   }
 
-  private async musicSearch(trackMeta: TrackMetadata, preferExtended: boolean = false): Promise<Link[]> {
+  private async musicSearch(
+    trackMeta: TrackMetadata,
+    preferExtended: boolean = false
+  ): Promise<Link[]> {
     const musicVideoCategoryId = await this.getMusicVideoCategoryId();
     const requestUrl = new URL("https://www.googleapis.com/youtube/v3/search");
     const params = {
       key: YOUTUBE_API_KEY,
       part: "snippet",
-      maxResults: 10,
+      maxResults: 5,
       order: "relevance",
       safeSearch: "none",
       type: "video",
@@ -180,12 +203,15 @@ export class YouTubeProvider implements DownloadableMusicProvider {
   }
 
   // https://developers.google.com/youtube/v3/docs/search/list
-  private async normalSearch(trackMeta: TrackMetadata, preferExtended: boolean = false): Promise<Link[]> {
+  private async normalSearch(
+    trackMeta: TrackMetadata,
+    preferExtended: boolean = false
+  ): Promise<Link[]> {
     const requestUrl = new URL("https://www.googleapis.com/youtube/v3/search");
     const params = {
       key: YOUTUBE_API_KEY,
       part: "snippet",
-      maxResults: 10,
+      maxResults: 5,
       order: "relevance",
       safeSearch: "none",
       type: "video",
@@ -196,11 +222,14 @@ export class YouTubeProvider implements DownloadableMusicProvider {
     return await this.runYoutubeSearch(requestUrl, params, trackMeta, preferExtended);
   }
 
-  public async search(trackMeta: TrackMetadata, preferExtended: boolean = false): Promise<Link[]> {
+  public async search(
+    trackMeta: TrackMetadata,
+    preferExtended: boolean = false
+  ): Promise<Link[]> {
     const musicMatches = await this.musicSearch(trackMeta, preferExtended);
     const musicMatchesSorted = musicMatches.sort((a, b) => b.similarity - a.similarity);
 
-    if(musicMatchesSorted.length > 0 && musicMatchesSorted[0].similarity > this.AUTO_MATCH_THRESHOLD) {
+    if(musicMatchesSorted.length > 0 && musicMatchesSorted[0].similarity > this.EXACT_MATCH_THRESHOLD) {
       return [musicMatchesSorted[0]];
     }
 
