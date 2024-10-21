@@ -146,7 +146,7 @@ export class YouTubeProvider implements DownloadableMusicProvider {
     const paramsWithoutKey = {...params};
     delete paramsWithoutKey["key"];
 
-    logger.debug(`Making query to YouTube - ${JSON.stringify({requestUrl, paramsWithoutKey})}`);
+    logger.debug(`Making query to YouTube - ${JSON.stringify({paramsWithoutKey})}`);
 
     const response = await fetch(requestUrl);
     const searchResults = (await response.json())["items"];
